@@ -1,0 +1,14 @@
+[project]
+name = "parsertest"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "asyncio>=4.0.0",
+    "flask>=3.1.2",
+    "openpyxl>=3.1.5",
+    "pathlib>=1.0.1",
+    "playwright>=1.57.0",
+    "requests>=2.32.5",
+]
