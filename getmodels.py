@@ -24,7 +24,7 @@ def load_serials_from_excel():
     unique_serials = set()
     try:
         wb = load_workbook(EXCEL_FILE)
-        sheet = wb["Состав"]
+        sheet = wb["Серийники"]
         for row in sheet.iter_rows(min_row=2, values_only=True):  # Skip header
             serial = row[-1]  # Last column is serial
             if serial:
@@ -122,7 +122,7 @@ async def main():
     remaining_serials = [s for s in all_serials if s not in models]
     if not remaining_serials:
         print("All serials already processed. Exiting.")
-        return
+        # return
     
     total = len(remaining_serials)
     print(f"Processing {total} remaining serials (skipped {len(all_serials) - total} already done).")
@@ -149,7 +149,29 @@ async def main():
         
         successes = 0
         failures = 0
+        iteration_count = 0  # Counter for restarting context
         for i, serial in enumerate(remaining_serials, 1):
+            iteration_count += 1
+            
+            # Restart browser context every 50 iterations
+            if iteration_count % 50 == 0:
+                print(f"Restarting browser context after {iteration_count} iterations to prevent JavaScript storage issues.")
+                await context.close()
+                context = await p.chromium.launch_persistent_context(
+                    user_data_dir=user_data_dir,
+                    headless=False,
+                    args=[
+                        "--window-position=-10000,-10000",
+                        "--window-size=1,1",
+                        "--disable-background-timer-throttling",
+                        "--disable-blink-features=AutomationControlled"
+                    ]
+                )
+                # Re-minimize and background the new browser window
+                os.system('osascript -e \'tell application "Google Chrome for Testing" to set miniaturized of window 1 to true\'')
+                os.system('osascript -e \'tell application "Google Chrome for Testing" to set frontmost of frontmost to false\'')
+                print("Browser context restarted and window minimized.")
+            
             model = await get_model_for_serial(serial, context, i, total)
             models[serial] = model  # Add to dict
             if model != "N/A":
@@ -182,13 +204,15 @@ async def main():
     wb = load_workbook(EXCEL_FILE)
     sheet = wb["Состав"]
     
+    # Get header values as a list
+    header_row_values = [cell.value for cell in sheet[1]]
+    
     # Add header for Model column (after Serial) if not already there
-    header_row = list(sheet[1])  # First row is header
-    if "Model" not in header_row:
-        header_row.append("Model")
+    if "Model" not in header_row_values:
+        header_row_values.append("Model")
         sheet.delete_rows(1)
         sheet.insert_rows(1)
-        for col, value in enumerate(header_row, 1):
+        for col, value in enumerate(header_row_values, 1):
             sheet.cell(row=1, column=col, value=value)
     
     # Update rows with model based on serial
@@ -197,6 +221,7 @@ async def main():
         serial = str(serial_cell.value or "").strip().upper()
         model = models.get(serial, "N/A")
         sheet.cell(row=row_idx, column=sheet.max_column, value=model)  # Add to last column
+        print(f"Index: {row_idx}")
     
     wb.save(EXCEL_FILE)
     
