@@ -1,14 +1,17 @@
-2026/01/20-20:44:28.973 2df16b Reusing MANIFEST /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Local Storage/leveldb/MANIFEST-000001
-2026/01/20-20:44:28.975 2df16b Recovering log #1305
-2026/01/20-20:44:28.975 2df16b Level-0 table #1308: started
-2026/01/20-20:44:28.977 2df16b Level-0 table #1308: 16804 bytes OK
-2026/01/20-20:44:28.978 2df16b Delete type=0 #1305
-2026/01/20-20:44:28.979 2df16e Compacting 4@0 + 1@1 files
-2026/01/20-20:44:28.984 2df16e Generated table #1310@0: 15 keys, 17699 bytes
-2026/01/20-20:44:28.984 2df16e Compacted 4@0 + 1@1 files => 17699 bytes
-2026/01/20-20:44:28.985 2df16e compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/01/20-20:44:28.985 2df16e Delete type=2 #1308
-2026/01/20-20:44:28.985 2df16e Delete type=2 #1301
-2026/01/20-20:44:28.985 2df16e Delete type=2 #1304
-2026/01/20-20:44:28.985 2df16e Delete type=2 #1306
-2026/01/20-20:44:28.985 2df16e Delete type=2 #1299
+2026/01/20-21:15:46.017 2ef538 Reusing MANIFEST /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Local Storage/leveldb/MANIFEST-000001
+2026/01/20-21:15:46.019 2ef538 Recovering log #1343
+2026/01/20-21:15:46.019 2ef538 Level-0 table #1346: started
+2026/01/20-21:15:46.021 2ef538 Level-0 table #1346: 228397 bytes OK
+2026/01/20-21:15:46.023 2ef538 Delete type=0 #1343
+2026/01/20-21:16:46.033 2ef538 Level-0 table #1349: started
+2026/01/20-21:16:46.039 2ef538 Level-0 table #1349: 20390 bytes OK
+2026/01/20-21:16:46.056 2ef538 Delete type=0 #1347
+2026/01/20-21:16:46.056 2ef538 Compacting 4@0 + 1@1 files
+2026/01/20-21:16:46.060 2ef538 Generated table #1350@0: 15 keys, 229969 bytes
+2026/01/20-21:16:46.060 2ef538 Compacted 4@0 + 1@1 files => 229969 bytes
+2026/01/20-21:16:46.061 2ef538 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/01/20-21:16:46.061 2ef538 Delete type=2 #1340
+2026/01/20-21:16:46.061 2ef538 Delete type=2 #1342
+2026/01/20-21:16:46.061 2ef538 Delete type=2 #1346
+2026/01/20-21:16:46.061 2ef538 Delete type=2 #1344
+2026/01/20-21:16:46.061 2ef538 Delete type=2 #1349

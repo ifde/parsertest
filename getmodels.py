@@ -34,75 +34,112 @@ def load_serials_from_csv():
         sys.exit(1)
     return list(unique_serials)
 
-async def get_model_for_serial(serial: str, context, index: int, total: int) -> str:
-    user_agent = random.choice(USER_AGENTS)
-    page = await context.new_page()
-    await page.set_extra_http_headers({"User-Agent": user_agent})
-    
-    try:
-        # Navigate to the parts page
-        base_url = "https://datacentersupport.lenovo.com/lv/ru/products/servers/thinksystem/sr665/7d2v/7d2vcto1ww/parts"
-        print(f"Processing {index}/{total}: {serial} - Navigating to parts page")
-        
-        await page.goto(base_url, wait_until="domcontentloaded", timeout=60000)
+def load_existing_models():
+    """Load existing models from RES_CSV."""
+    models = {}
+    if RES_CSV.exists():
+        try:
+            with open(RES_CSV, 'r', newline='', encoding='utf-8') as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    serial = row.get('Serial', '').strip().upper()
+                    model = row.get('Model', 'N/A')
+                    if serial:
+                        models[serial] = model
+            print(f"✓ Loaded {len(models)} existing models from {RES_CSV}.")
+        except Exception as e:
+            print(f"✗ Error loading existing models: {e}")
+    else:
+        print("No existing newmodels.csv found; starting fresh.")
+    return models
 
-        # Handle country modal
+async def get_model_for_serial(serial: str, context, semaphore, index: int, total: int) -> tuple[str, str]:
+    async with semaphore:
+        user_agent = random.choice(USER_AGENTS)
+        page = await context.new_page()
+        await page.set_extra_http_headers({"User-Agent": user_agent})
+        
         try:
-            country_modal = page.locator('#ipdetect_differentCountryModal')
-            if await country_modal.is_visible(timeout=5000):
-                continue_button = country_modal.locator('.btn_no')
-                await continue_button.click()
+            # Navigate to the parts page
+            base_url = "https://datacentersupport.lenovo.com/lv/ru/products/servers/thinksystem/sr665/7d2v/7d2vcto1ww/parts"
+            print(f"Processing {index}/{total}: {serial} - Navigating to parts page")
+            
+            await page.goto(base_url, wait_until="domcontentloaded", timeout=5000)
+
+            # Handle country modal
+            try:
+                country_modal = page.locator('#ipdetect_differentCountryModal')
+                if await country_modal.is_visible(timeout=5000):
+                    continue_button = country_modal.locator('.btn_no')
+                    await continue_button.click()
+            except Exception as e:
+                print(f"Country modal handling: {e}")
+            
+            # Accept Evidon cookies
+            try:
+                accept_button = page.locator('#_evidon-banner-acceptbutton')
+                if await accept_button.is_visible(timeout=5000):
+                    await accept_button.click()
+            except Exception as e:
+                print(f"Cookie banner handling: {e}")
+            
+            # Enter serial in the input field
+            input_field = page.locator('input.sn-input-sec-nav.typeahead.tt-input')
+            await input_field.fill(serial)
+            print(f"Entered serial: {serial}")
+            
+            # Click the search button
+            search_button = page.locator('span.sn-title-icon.inputing.icon-l-right.inputmode[role="button"]')
+            await search_button.click()
+            print("Clicked search")
+            
+            # Wait for the product name text to appear
+            prod_name_locator = page.locator('div.prod-name-text')
+            await prod_name_locator.wait_for(state="visible", timeout=5000)
+            await asyncio.sleep(5)
+            
+            # Scrape the model
+            model_text = await prod_name_locator.text_content()
+            model = model_text.strip() if model_text else "N/A"
+            print(f"✓ Scraped model for {serial}: {model}")
+            
+            return serial, model
+            
         except Exception as e:
-            print(f"Country modal handling: {e}")
-        
-        # Accept Evidon cookies
-        try:
-            accept_button = page.locator('#_evidon-banner-acceptbutton')
-            if await accept_button.is_visible(timeout=5000):
-                await accept_button.click()
-        except Exception as e:
-            print(f"Cookie banner handling: {e}")
-        
-        # Enter serial in the input field
-        input_field = page.locator('input.sn-input-sec-nav.typeahead.tt-input')
-        await input_field.fill(serial)
-        print(f"Entered serial: {serial}")
-        
-        # Click the search button
-        search_button = page.locator('span.sn-title-icon.inputing.icon-l-right.inputmode[role="button"]')
-        await search_button.click()
-        print("Clicked search")
-        
-        # Wait for the product name text to appear
-        prod_name_locator = page.locator('div.prod-name-text')
-        await prod_name_locator.wait_for(state="visible", timeout=10000)
-        await asyncio.sleep(5)
-        
-        # Scrape the model
-        model_text = await prod_name_locator.text_content()
-        model = model_text.strip() if model_text else "N/A"
-        print(f"✓ Scraped model for {serial}: {model}")
-        
-        return model
-        
-    except Exception as e:
-        print(f"✗ Error for {serial}: {e}")
-        return "N/A"
-        
-    finally:
-        await page.close()
+            print(f"✗ Error for {serial}: {e}")
+            return serial, "N/A"
+            
+        finally:
+            await page.close()
+
+async def process_batch(serials, context, semaphore, start_index, total):
+    tasks = []
+    for i, serial in enumerate(serials):
+        task = get_model_for_serial(serial, context, semaphore, start_index + i, total)
+        tasks.append(task)
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    return [r for r in results if not isinstance(r, Exception)]
 
 async def main():
     # Load all serials from CSV
     all_serials = load_serials_from_csv()
     
-    # Process all serials (replace existing models)
-    remaining_serials = all_serials
+    # Load existing models from newmodels.csv
+    existing_models = load_existing_models()
+    
+    # Filter to only unprocessed serials
+    remaining_serials = [s for s in all_serials if s not in existing_models]
+    if not remaining_serials:
+        print("All serials already processed. Exiting.")
+        return
+    
     total = len(remaining_serials)
-    print(f"Processing {total} serials.")
+    print(f"Processing {total} remaining serials (skipped {len(all_serials) - total} already done).")
     start_time = time.time()
     
-    models = {}  # Start fresh
+    models = existing_models.copy()  # Start with existing
+    
+    semaphore = asyncio.Semaphore(10)  # Limit concurrency to 5
     
     async with async_playwright() as p:
         user_data_dir = PROJECT_ROOT / "lenovo_cookies"
@@ -126,49 +163,30 @@ async def main():
         except:
             pass  # Ignore AppleScript errors
         
+        batch_size = 20  # Process in batches
         successes = 0
         failures = 0
-        iteration_count = 0  # Counter for restarting context
-        for i, serial in enumerate(remaining_serials, 1):
-            iteration_count += 1
+        processed = 0
+        
+        for start in range(0, total, batch_size):
+            batch = remaining_serials[start:start + batch_size]
+            print(f"Processing batch {start//batch_size + 1}")
+            results = await process_batch(batch, context, semaphore, start + 1, total)
+            for serial, model in results:
+                models[serial] = model
+                if model != "N/A":
+                    successes += 1
+                else:
+                    failures += 1
+            processed += len(batch)
             
-            # Restart browser context every 50 iterations
-            if iteration_count % 50 == 0:
-                print(f"Restarting browser context after {iteration_count} iterations to prevent JavaScript storage issues.")
-                await context.close()
-                context = await p.chromium.launch_persistent_context(
-                    user_data_dir=user_data_dir,
-                    headless=False,
-                    args=[
-                        "--window-position=-10000,-10000",
-                        "--window-size=1,1",
-                        "--disable-background-timer-throttling",
-                        "--disable-blink-features=AutomationControlled"
-                    ]
-                )
-                # Re-minimize and background the new browser window
-                try:
-                    os.system('osascript -e \'tell application "Google Chrome for Testing" to set miniaturized of window 1 to true\'')
-                    os.system('osascript -e \'tell application "Google Chrome for Testing" to set frontmost of frontmost to false\'')
-                    print("Browser context restarted and window minimized.")
-                except:
-                    pass
-            
-            model = await get_model_for_serial(serial, context, i, total)
-            models[serial] = model  # Add to dict
-            if model != "N/A":
-                successes += 1
-            else:
-                failures += 1
-            
-            # Save progress every 10 serials (optional, for safety)
-            if i % 10 == 0:
-                with open(RES_CSV, 'w', newline='', encoding='utf-8') as csvfile:
-                    writer = csv.writer(csvfile)
-                    writer.writerow(["Serial", "Model"])
-                    for s, m in models.items():
-                        writer.writerow([s, m])
-                print(f"Progress saved after {i} serials.")
+            # Save progress
+            with open(RES_CSV, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(["Serial", "Model"])
+                for s, m in models.items():
+                    writer.writerow([s, m])
+            print(f"Progress saved after {processed} serials.")
         
         await context.close()
     
