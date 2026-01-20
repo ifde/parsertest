@@ -1,3 +1,6 @@
-2026/01/20-13:42:13.440 28dd9c Reusing MANIFEST /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Session Storage/MANIFEST-000001
-2026/01/20-13:42:13.441 28dd9c Recovering log #514
-2026/01/20-13:42:13.441 28dd9c Reusing old log /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Session Storage/000514.log 
+2026/01/20-19:52:16.287 2cb89b Reusing MANIFEST /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Session Storage/MANIFEST-000001
+2026/01/20-19:52:16.289 2cb89b Recovering log #518
+2026/01/20-19:52:16.296 2cb89b Reusing old log /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Session Storage/000518.log 
+2026/01/20-19:52:24.404 2cb89e Level-0 table #522: started
+2026/01/20-19:52:24.407 2cb89e Level-0 table #522: 15657 bytes OK
+2026/01/20-19:52:24.409 2cb89e Delete type=0 #518

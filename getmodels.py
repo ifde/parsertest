@@ -122,7 +122,7 @@ async def main():
     remaining_serials = [s for s in all_serials if s not in models]
     if not remaining_serials:
         print("All serials already processed. Exiting.")
-        # return
+        return
     
     total = len(remaining_serials)
     print(f"Processing {total} remaining serials (skipped {len(all_serials) - total} already done).")
