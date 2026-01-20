@@ -64,7 +64,7 @@ async def get_model_for_serial(serial: str, context, semaphore, index: int, tota
             base_url = "https://datacentersupport.lenovo.com/lv/ru/products/servers/thinksystem/sr665/7d2v/7d2vcto1ww/parts"
             print(f"Processing {index}/{total}: {serial} - Navigating to parts page")
             
-            await page.goto(base_url, wait_until="domcontentloaded", timeout=5000)
+            await page.goto(base_url, wait_until="domcontentloaded", timeout=15000)
 
             # Handle country modal
             try:
@@ -139,11 +139,13 @@ async def main():
     
     models = existing_models.copy()  # Start with existing
     
-    semaphore = asyncio.Semaphore(10)  # Limit concurrency to 5
+    semaphore = asyncio.Semaphore(10)  # Limit concurrency to 10
     
     async with async_playwright() as p:
         user_data_dir = PROJECT_ROOT / "lenovo_cookies"
         user_data_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Initial context
         context = await p.chromium.launch_persistent_context(
             user_data_dir=user_data_dir,
             headless=False,  # Real browser
@@ -163,14 +165,16 @@ async def main():
         except:
             pass  # Ignore AppleScript errors
         
-        batch_size = 20  # Process in batches
+        batch_size = 50  # Process in batches
         successes = 0
         failures = 0
         processed = 0
+        batch_count = 0
         
         for start in range(0, total, batch_size):
             batch = remaining_serials[start:start + batch_size]
-            print(f"Processing batch {start//batch_size + 1}")
+            batch_count += 1
+            print(f"Processing batch {batch_count}")
             results = await process_batch(batch, context, semaphore, start + 1, total)
             for serial, model in results:
                 models[serial] = model
@@ -179,6 +183,28 @@ async def main():
                 else:
                     failures += 1
             processed += len(batch)
+            
+            # Restart context every 5 batches to keep JS cache low
+            if batch_count % 5 == 0:
+                print("Restarting browser context to clear JavaScript cache.")
+                await context.close()
+                context = await p.chromium.launch_persistent_context(
+                    user_data_dir=user_data_dir,
+                    headless=False,
+                    args=[
+                        "--window-position=-10000,-10000",
+                        "--window-size=1,1",
+                        "--disable-background-timer-throttling",
+                        "--disable-blink-features=AutomationControlled"
+                    ]
+                )
+                # Re-minimize and background the new browser window
+                try:
+                    os.system('osascript -e \'tell application "Google Chrome for Testing" to set miniaturized of window 1 to true\'')
+                    os.system('osascript -e \'tell application "Google Chrome for Testing" to set frontmost of frontmost to false\'')
+                    print("Browser context restarted and window minimized.")
+                except:
+                    pass
             
             # Save progress
             with open(RES_CSV, 'w', newline='', encoding='utf-8') as csvfile:

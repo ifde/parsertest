@@ -1,27 +1,9 @@
-2026/01/20-21:15:47.589 2ef538 Reusing MANIFEST /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Session Storage/MANIFEST-000001
-2026/01/20-21:15:47.595 2ef538 Recovering log #606
-2026/01/20-21:15:47.598 2ef538 Reusing old log /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Session Storage/000606.log 
-2026/01/20-21:16:03.060 2ef53c Level-0 table #610: started
-2026/01/20-21:16:03.064 2ef53c Level-0 table #610: 15520 bytes OK
-2026/01/20-21:16:03.066 2ef53c Delete type=0 #606
-2026/01/20-21:16:33.101 2ef53c Level-0 table #612: started
-2026/01/20-21:16:33.105 2ef53c Level-0 table #612: 16313 bytes OK
-2026/01/20-21:16:33.115 2ef53c Delete type=0 #609
-2026/01/20-21:16:33.116 2ef53c Compacting 4@0 + 1@1 files
-2026/01/20-21:16:33.130 2ef53c Generated table #613@0: 52525 keys, 962297 bytes
-2026/01/20-21:16:33.130 2ef53c Compacted 4@0 + 1@1 files => 962297 bytes
-2026/01/20-21:16:33.131 2ef53c compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/01/20-21:16:33.131 2ef53c Delete type=2 #607
-2026/01/20-21:16:33.132 2ef53c Delete type=2 #612
-2026/01/20-21:16:33.132 2ef53c Delete type=2 #610
-2026/01/20-21:16:33.132 2ef53c Delete type=2 #605
-2026/01/20-21:16:33.132 2ef53c Delete type=2 #603
-2026/01/20-21:16:54.376 2ef53c Level-0 table #615: started
-2026/01/20-21:16:54.378 2ef53c Level-0 table #615: 14889 bytes OK
-2026/01/20-21:16:54.386 2ef53c Delete type=0 #611
-2026/01/20-21:17:19.066 2ef53c Level-0 table #617: started
-2026/01/20-21:17:19.072 2ef53c Level-0 table #617: 15305 bytes OK
-2026/01/20-21:17:19.077 2ef53c Delete type=0 #614
-2026/01/20-21:17:43.365 2ef53c Level-0 table #619: started
-2026/01/20-21:17:43.369 2ef53c Level-0 table #619: 14782 bytes OK
-2026/01/20-21:17:43.372 2ef53c Delete type=0 #616
+2026/01/20-22:52:26.348 325d1c Reusing MANIFEST /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Session Storage/MANIFEST-000001
+2026/01/20-22:52:26.352 325d1c Recovering log #982
+2026/01/20-22:52:26.352 325d1c Reusing old log /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Session Storage/000982.log 
+2026/01/20-22:52:53.027 325d20 Level-0 table #987: started
+2026/01/20-22:52:53.030 325d20 Level-0 table #987: 15877 bytes OK
+2026/01/20-22:52:53.031 325d20 Delete type=0 #982
+2026/01/20-22:53:24.006 325d1c Level-0 table #989: started
+2026/01/20-22:53:24.011 325d1c Level-0 table #989: 14170 bytes OK
+2026/01/20-22:53:24.014 325d1c Delete type=0 #986
