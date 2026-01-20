@@ -5,11 +5,9 @@ import os
 import csv
 from pathlib import Path
 from playwright.async_api import async_playwright
-from openpyxl import load_workbook
 import time
 
 PROJECT_ROOT = Path(__file__).parent
-EXCEL_FILE = PROJECT_ROOT / "output.xlsx"  # The existing mega file with parts data
 MODELS_CSV = PROJECT_ROOT / "models.csv"  # CSV file for models
 
 # List of user-agents to rotate
@@ -19,39 +17,37 @@ USER_AGENTS = [
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
 ]
 
-def load_serials_from_excel():
-    """Load unique serials from the Excel file."""
+def load_serials_from_csv():
+    """Load unique serials from the CSV file."""
     unique_serials = set()
     try:
-        wb = load_workbook(EXCEL_FILE)
-        sheet = wb["Серийники"]
-        for row in sheet.iter_rows(min_row=2, values_only=True):  # Skip header
-            serial = row[-1]  # Last column is serial
-            if serial:
-                unique_serials.add(str(serial).strip().upper())
-        print(f"✓ Loaded {len(unique_serials)} unique serials from Excel.")
+        with open(MODELS_CSV, 'r', newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                serial = row.get('Serial', '').strip().upper()
+                if serial:
+                    unique_serials.add(serial)
+        print(f"✓ Loaded {len(unique_serials)} unique serials from CSV.")
     except Exception as e:
-        print(f"✗ Error loading Excel file: {e}")
+        print(f"✗ Error loading CSV file: {e}")
         sys.exit(1)
     return list(unique_serials)
 
 def load_existing_models():
-    """Load existing models from CSV if it exists."""
+    """Load existing models from CSV."""
     models = {}
-    if MODELS_CSV.exists():
-        try:
-            with open(MODELS_CSV, 'r', newline='', encoding='utf-8') as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    serial = row.get('Serial', '').strip().upper()
-                    model = row.get('Model', 'N/A')
-                    if serial:
-                        models[serial] = model
-            print(f"✓ Loaded {len(models)} existing models from {MODELS_CSV}.")
-        except Exception as e:
-            print(f"✗ Error loading existing models: {e}")
-    else:
-        print("No existing models.csv found; starting fresh.")
+    try:
+        with open(MODELS_CSV, 'r', newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                serial = row.get('Serial', '').strip().upper()
+                model = row.get('Model', 'N/A')
+                if serial:
+                    models[serial] = model
+        print(f"✓ Loaded {len(models)} existing models from {MODELS_CSV}.")
+    except Exception as e:
+        print(f"✗ Error loading existing models: {e}")
+        return {}
     return models
 
 async def get_model_for_serial(serial: str, context, index: int, total: int) -> str:
@@ -112,16 +108,17 @@ async def get_model_for_serial(serial: str, context, index: int, total: int) -> 
         await page.close()
 
 async def main():
-    # Load all serials
-    all_serials = load_serials_from_excel()
+    # Load all serials from CSV
+    all_serials = load_serials_from_csv()
     
-    # Load existing models
+    # Load existing models (to check if already scraped)
     models = load_existing_models()
     
-    # Filter to only unprocessed serials
-    remaining_serials = [s for s in all_serials if s not in models]
+    # Filter to only unprocessed serials (those with "N/A" or not present, but since we're replacing, process all)
+    # Since we want to update all, even if they have models, but to avoid re-scraping, check if model != "N/A"
+    remaining_serials = [s for s in all_serials if models.get(s, "N/A") == "N/A"]
     if not remaining_serials:
-        print("All serials already processed. Exiting.")
+        print("All serials already have models. Exiting.")
         return
     
     total = len(remaining_serials)
@@ -142,10 +139,13 @@ async def main():
             ]
         )
         
-        # Minimize and background the browser window (macOS specific)
-        os.system('osascript -e \'tell application "Google Chrome for Testing" to set miniaturized of window 1 to true\'')
-        os.system('osascript -e \'tell application "Google Chrome for Testing" to set frontmost of frontmost to false\'')
-        print("Browser window minimized and sent to background.")
+        # Try to minimize and background the browser window (macOS specific), ignore errors
+        try:
+            os.system('osascript -e \'tell application "Google Chrome for Testing" to set miniaturized of window 1 to true\'')
+            os.system('osascript -e \'tell application "Google Chrome for Testing" to set frontmost of frontmost to false\'')
+            print("Browser window minimized and sent to background.")
+        except:
+            pass  # Ignore AppleScript errors
         
         successes = 0
         failures = 0
@@ -167,68 +167,4 @@ async def main():
                         "--disable-blink-features=AutomationControlled"
                     ]
                 )
-                # Re-minimize and background the new browser window
-                os.system('osascript -e \'tell application "Google Chrome for Testing" to set miniaturized of window 1 to true\'')
-                os.system('osascript -e \'tell application "Google Chrome for Testing" to set frontmost of frontmost to false\'')
-                print("Browser context restarted and window minimized.")
-            
-            model = await get_model_for_serial(serial, context, i, total)
-            models[serial] = model  # Add to dict
-            if model != "N/A":
-                successes += 1
-            else:
-                failures += 1
-            
-            # Save progress every 10 serials (optional, for safety)
-            if i % 10 == 0:
-                with open(MODELS_CSV, 'w', newline='', encoding='utf-8') as csvfile:
-                    writer = csv.writer(csvfile)
-                    writer.writerow(["Serial", "Model"])
-                    for s, m in models.items():
-                        writer.writerow([s, m])
-                print(f"Progress saved after {i} serials.")
-        
-        await context.close()
-    
-    # Save all models to CSV
-    print("Saving all models to CSV...")
-    with open(MODELS_CSV, 'w', newline='', encoding='utf-8') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(["Serial", "Model"])
-        for serial, model in models.items():
-            writer.writerow([serial, model])
-    print(f"✓ All models saved to {MODELS_CSV}")
-    
-    # Update the Excel file with models
-    print("Updating Excel with models...")
-    wb = load_workbook(EXCEL_FILE)
-    sheet = wb["Состав"]
-    
-    # Get header values as a list
-    header_row_values = [cell.value for cell in sheet[1]]
-    
-    # Add header for Model column (after Serial) if not already there
-    if "Model" not in header_row_values:
-        header_row_values.append("Model")
-        sheet.delete_rows(1)
-        sheet.insert_rows(1)
-        for col, value in enumerate(header_row_values, 1):
-            sheet.cell(row=1, column=col, value=value)
-    
-    # Update rows with model based on serial
-    for row_idx in range(2, sheet.max_row + 1):
-        serial_cell = sheet.cell(row=row_idx, column=sheet.max_column - 1)  # Serial is second last now
-        serial = str(serial_cell.value or "").strip().upper()
-        model = models.get(serial, "N/A")
-        sheet.cell(row=row_idx, column=sheet.max_column, value=model)  # Add to last column
-        print(f"Index: {row_idx}")
-    
-    wb.save(EXCEL_FILE)
-    
-    total_time = time.time() - start_time
-    print(f"Processed {total} serials: {successes} successes, {failures} failures")
-    print(f"Total time: {total_time:.2f} seconds")
-    print("Excel updated with models in output.xlsx")
 
-if __name__ == "__main__":
-    asyncio.run(main())
