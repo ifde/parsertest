@@ -1,3 +1,18 @@
-2026/01/20-19:54:42.349 2cc9d7 Reusing MANIFEST /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Session Storage/MANIFEST-000001
-2026/01/20-19:54:42.350 2cc9d7 Recovering log #521
-2026/01/20-19:54:42.351 2cc9d7 Reusing old log /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Session Storage/000521.log 
+2026/01/20-20:46:03.831 2dfdeb Reusing MANIFEST /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Session Storage/MANIFEST-000001
+2026/01/20-20:46:03.832 2dfdeb Recovering log #524
+2026/01/20-20:46:03.833 2dfdeb Reusing old log /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Session Storage/000524.log 
+2026/01/20-20:46:14.763 2dfdee Level-0 table #528: started
+2026/01/20-20:46:14.765 2dfdee Level-0 table #528: 16011 bytes OK
+2026/01/20-20:46:14.769 2dfdee Delete type=0 #524
+2026/01/20-20:46:14.769 2dfdee Compacting 4@0 + 1@1 files
+2026/01/20-20:46:14.780 2dfdee Generated table #529@0: 42985 keys, 797777 bytes
+2026/01/20-20:46:14.780 2dfdee Compacted 4@0 + 1@1 files => 797777 bytes
+2026/01/20-20:46:14.781 2dfdee compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/01/20-20:46:14.781 2dfdee Delete type=2 #528
+2026/01/20-20:46:14.781 2dfdee Delete type=2 #516
+2026/01/20-20:46:14.781 2dfdee Delete type=2 #525
+2026/01/20-20:46:14.781 2dfdee Delete type=2 #519
+2026/01/20-20:46:14.781 2dfdee Delete type=2 #522
+2026/01/20-20:50:34.847 2dfdee Level-0 table #531: started
+2026/01/20-20:50:34.852 2dfdee Level-0 table #531: 16487 bytes OK
+2026/01/20-20:50:34.853 2dfdee Delete type=0 #527

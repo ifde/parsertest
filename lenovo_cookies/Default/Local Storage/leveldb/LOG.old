@@ -1,3 +1,14 @@
-2026/01/20-19:54:41.083 2cc9d7 Reusing MANIFEST /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Local Storage/leveldb/MANIFEST-000001
-2026/01/20-19:54:41.085 2cc9d7 Recovering log #1285
-2026/01/20-19:54:41.086 2cc9d7 Reusing old log /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Local Storage/leveldb/001285.log 
+2026/01/20-20:44:28.973 2df16b Reusing MANIFEST /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Local Storage/leveldb/MANIFEST-000001
+2026/01/20-20:44:28.975 2df16b Recovering log #1305
+2026/01/20-20:44:28.975 2df16b Level-0 table #1308: started
+2026/01/20-20:44:28.977 2df16b Level-0 table #1308: 16804 bytes OK
+2026/01/20-20:44:28.978 2df16b Delete type=0 #1305
+2026/01/20-20:44:28.979 2df16e Compacting 4@0 + 1@1 files
+2026/01/20-20:44:28.984 2df16e Generated table #1310@0: 15 keys, 17699 bytes
+2026/01/20-20:44:28.984 2df16e Compacted 4@0 + 1@1 files => 17699 bytes
+2026/01/20-20:44:28.985 2df16e compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/01/20-20:44:28.985 2df16e Delete type=2 #1308
+2026/01/20-20:44:28.985 2df16e Delete type=2 #1301
+2026/01/20-20:44:28.985 2df16e Delete type=2 #1304
+2026/01/20-20:44:28.985 2df16e Delete type=2 #1306
+2026/01/20-20:44:28.985 2df16e Delete type=2 #1299

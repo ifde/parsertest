@@ -9,6 +9,7 @@ import time
 
 PROJECT_ROOT = Path(__file__).parent
 MODELS_CSV = PROJECT_ROOT / "models.csv"  # CSV file for models
+RES_CSV = PROJECT_ROOT / "newmodels.csv"  # CSV file for models
 
 # List of user-agents to rotate
 USER_AGENTS = [
@@ -32,23 +33,6 @@ def load_serials_from_csv():
         print(f"✗ Error loading CSV file: {e}")
         sys.exit(1)
     return list(unique_serials)
-
-def load_existing_models():
-    """Load existing models from CSV."""
-    models = {}
-    try:
-        with open(MODELS_CSV, 'r', newline='', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                serial = row.get('Serial', '').strip().upper()
-                model = row.get('Model', 'N/A')
-                if serial:
-                    models[serial] = model
-        print(f"✓ Loaded {len(models)} existing models from {MODELS_CSV}.")
-    except Exception as e:
-        print(f"✗ Error loading existing models: {e}")
-        return {}
-    return models
 
 async def get_model_for_serial(serial: str, context, index: int, total: int) -> str:
     user_agent = random.choice(USER_AGENTS)
@@ -91,7 +75,8 @@ async def get_model_for_serial(serial: str, context, index: int, total: int) -> 
         
         # Wait for the product name text to appear
         prod_name_locator = page.locator('div.prod-name-text')
-        await prod_name_locator.wait_for(state="visible", timeout=30000)
+        await prod_name_locator.wait_for(state="visible", timeout=10000)
+        await asyncio.sleep(5)
         
         # Scrape the model
         model_text = await prod_name_locator.text_content()
@@ -111,19 +96,13 @@ async def main():
     # Load all serials from CSV
     all_serials = load_serials_from_csv()
     
-    # Load existing models (to check if already scraped)
-    models = load_existing_models()
-    
-    # Filter to only unprocessed serials (those with "N/A" or not present, but since we're replacing, process all)
-    # Since we want to update all, even if they have models, but to avoid re-scraping, check if model != "N/A"
-    remaining_serials = [s for s in all_serials if models.get(s, "N/A") == "N/A"]
-    if not remaining_serials:
-        print("All serials already have models. Exiting.")
-        return
-    
+    # Process all serials (replace existing models)
+    remaining_serials = all_serials
     total = len(remaining_serials)
-    print(f"Processing {total} remaining serials (skipped {len(all_serials) - total} already done).")
+    print(f"Processing {total} serials.")
     start_time = time.time()
+    
+    models = {}  # Start fresh
     
     async with async_playwright() as p:
         user_data_dir = PROJECT_ROOT / "lenovo_cookies"
@@ -139,7 +118,7 @@ async def main():
             ]
         )
         
-        # Try to minimize and background the browser window (macOS specific), ignore errors
+        # Minimize and background the browser window (macOS specific)
         try:
             os.system('osascript -e \'tell application "Google Chrome for Testing" to set miniaturized of window 1 to true\'')
             os.system('osascript -e \'tell application "Google Chrome for Testing" to set frontmost of frontmost to false\'')
@@ -167,4 +146,44 @@ async def main():
                         "--disable-blink-features=AutomationControlled"
                     ]
                 )
+                # Re-minimize and background the new browser window
+                try:
+                    os.system('osascript -e \'tell application "Google Chrome for Testing" to set miniaturized of window 1 to true\'')
+                    os.system('osascript -e \'tell application "Google Chrome for Testing" to set frontmost of frontmost to false\'')
+                    print("Browser context restarted and window minimized.")
+                except:
+                    pass
+            
+            model = await get_model_for_serial(serial, context, i, total)
+            models[serial] = model  # Add to dict
+            if model != "N/A":
+                successes += 1
+            else:
+                failures += 1
+            
+            # Save progress every 10 serials (optional, for safety)
+            if i % 10 == 0:
+                with open(RES_CSV, 'w', newline='', encoding='utf-8') as csvfile:
+                    writer = csv.writer(csvfile)
+                    writer.writerow(["Serial", "Model"])
+                    for s, m in models.items():
+                        writer.writerow([s, m])
+                print(f"Progress saved after {i} serials.")
+        
+        await context.close()
+    
+    # Save all models to CSV (replacing the Model column)
+    print("Saving all models to CSV...")
+    with open(MODELS_CSV, 'w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["Serial", "Model"])
+        for serial, model in models.items():
+            writer.writerow([serial, model])
+    print(f"✓ All models saved to {MODELS_CSV}")
+    
+    total_time = time.time() - start_time
+    print(f"Processed {total} serials: {successes} successes, {failures} failures")
+    print(f"Total time: {total_time:.2f} seconds")
 
+if __name__ == "__main__":
+    asyncio.run(main())

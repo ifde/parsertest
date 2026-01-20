@@ -1,3 +1,23 @@
-2026/01/20-20:01:25.369 2cfa46 Reusing MANIFEST /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Local Storage/leveldb/MANIFEST-000001
-2026/01/20-20:01:25.372 2cfa46 Recovering log #1285
-2026/01/20-20:01:25.372 2cfa46 Reusing old log /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Local Storage/leveldb/001285.log 
+2026/01/20-20:46:00.362 2dfdeb Reusing MANIFEST /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Local Storage/leveldb/MANIFEST-000001
+2026/01/20-20:46:00.364 2dfdeb Recovering log #1309
+2026/01/20-20:46:00.364 2dfdeb Level-0 table #1312: started
+2026/01/20-20:46:00.365 2dfdeb Level-0 table #1312: 13264 bytes OK
+2026/01/20-20:46:00.367 2dfdeb Delete type=0 #1309
+2026/01/20-20:47:00.369 2dfdee Level-0 table #1315: started
+2026/01/20-20:47:00.373 2dfdee Level-0 table #1315: 13860 bytes OK
+2026/01/20-20:47:00.377 2dfdee Delete type=0 #1313
+2026/01/20-20:48:10.808 2dfdee Level-0 table #1317: started
+2026/01/20-20:48:10.812 2dfdee Level-0 table #1317: 33585 bytes OK
+2026/01/20-20:48:10.814 2dfdee Delete type=0 #1314
+2026/01/20-20:50:07.288 2dfdee Level-0 table #1319: started
+2026/01/20-20:50:07.296 2dfdee Level-0 table #1319: 27190 bytes OK
+2026/01/20-20:50:07.300 2dfdee Delete type=0 #1316
+2026/01/20-20:50:07.301 2dfdee Compacting 4@0 + 1@1 files
+2026/01/20-20:50:07.303 2dfdee Generated table #1320@0: 15 keys, 27414 bytes
+2026/01/20-20:50:07.303 2dfdee Compacted 4@0 + 1@1 files => 27414 bytes
+2026/01/20-20:50:07.305 2dfdee compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/01/20-20:50:07.305 2dfdee Delete type=2 #1319
+2026/01/20-20:50:07.305 2dfdee Delete type=2 #1317
+2026/01/20-20:50:07.305 2dfdee Delete type=2 #1315
+2026/01/20-20:50:07.305 2dfdee Delete type=2 #1310
+2026/01/20-20:50:07.305 2dfdee Delete type=2 #1312
