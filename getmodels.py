@@ -35,8 +35,9 @@ def load_serials_from_csv():
     return list(unique_serials)
 
 def load_existing_models():
-    """Load existing models from RES_CSV."""
-    models = {}
+    """Load valid existing models from RES_CSV, and collect invalid serials."""
+    valid_models = {}
+    invalid_serials = []
     if RES_CSV.exists():
         try:
             with open(RES_CSV, 'r', newline='', encoding='utf-8') as csvfile:
@@ -45,13 +46,17 @@ def load_existing_models():
                     serial = row.get('Serial', '').strip().upper()
                     model = row.get('Model', 'N/A')
                     if serial:
-                        models[serial] = model
-            print(f"✓ Loaded {len(models)} existing models from {RES_CSV}.")
+                        if model in ("N/A", "SR665 (ThinkSystem) - Type 7D2V - Model 7D2VCTO1WW"):
+                            invalid_serials.append(serial)
+                        else:
+                            valid_models[serial] = model
+            print(f"✓ Loaded {len(valid_models)} valid models from {RES_CSV}.")
+            print(f"Found {len(invalid_serials)} invalid serials to re-process.")
         except Exception as e:
             print(f"✗ Error loading existing models: {e}")
     else:
         print("No existing newmodels.csv found; starting fresh.")
-    return models
+    return valid_models, invalid_serials
 
 async def get_model_for_serial(serial: str, context, semaphore, index: int, total: int) -> tuple[str, str]:
     async with semaphore:
@@ -124,20 +129,21 @@ async def main():
     # Load all serials from CSV
     all_serials = load_serials_from_csv()
     
-    # Load existing models from newmodels.csv
-    existing_models = load_existing_models()
+    # Load valid existing models and invalid serials from newmodels.csv
+    valid_models, invalid_serials = load_existing_models()
     
-    # Filter to only unprocessed serials
-    remaining_serials = [s for s in all_serials if s not in existing_models]
+    # Serials to process: invalid ones + new ones not in valid_models
+    remaining_serials = invalid_serials + [s for s in all_serials if s not in valid_models]
+    remaining_serials = list(set(remaining_serials))  # Remove duplicates
     if not remaining_serials:
-        print("All serials already processed. Exiting.")
+        print("All serials already have valid models. Exiting.")
         return
     
     total = len(remaining_serials)
-    print(f"Processing {total} remaining serials (skipped {len(all_serials) - total} already done).")
+    print(f"Processing {total} serials (including {len(invalid_serials)} invalid re-processes).")
     start_time = time.time()
     
-    models = existing_models.copy()  # Start with existing
+    models = valid_models.copy()  # Start with valid existing
     
     semaphore = asyncio.Semaphore(10)  # Limit concurrency to 10
     
@@ -165,7 +171,7 @@ async def main():
         except:
             pass  # Ignore AppleScript errors
         
-        batch_size = 50  # Process in batches
+        batch_size = 20  # Process in batches
         successes = 0
         failures = 0
         processed = 0
@@ -178,7 +184,7 @@ async def main():
             results = await process_batch(batch, context, semaphore, start + 1, total)
             for serial, model in results:
                 models[serial] = model
-                if model != "N/A":
+                if model not in ("N/A", "SR665 (ThinkSystem) - Type 7D2V - Model 7D2VCTO1WW"):
                     successes += 1
                 else:
                     failures += 1

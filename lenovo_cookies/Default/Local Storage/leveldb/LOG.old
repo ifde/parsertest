@@ -1,6 +1,5 @@
-2026/01/20-22:52:24.856 325d1c Reusing MANIFEST /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Local Storage/leveldb/MANIFEST-000001
-2026/01/20-22:52:24.858 325d1c Recovering log #1381
-2026/01/20-22:52:24.858 325d1c Reusing old log /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Local Storage/leveldb/001381.log 
-2026/01/20-22:53:24.862 325d20 Level-0 table #1384: started
-2026/01/20-22:53:24.864 325d20 Level-0 table #1384: 13653 bytes OK
-2026/01/20-22:53:24.867 325d20 Delete type=0 #1381
+2026/01/21-05:59:43.331 3f4828 Reusing MANIFEST /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Local Storage/leveldb/MANIFEST-000001
+2026/01/21-05:59:43.332 3f4828 Recovering log #1888
+2026/01/21-05:59:43.332 3f4828 Reusing old log /Users/admin/Downloads/parsertest/lenovo_cookies/Default/Local Storage/leveldb/001888.log 
+2026/01/21-06:00:24.917 3f482e Level-0 table #1891: started
+2026/01/21-06:00:24.920 3f482e Level-0 table #1891: 26844 bytes OK
