@@ -1,6 +1,11 @@
 import csv
+import logging
 from pathlib import Path
 from openpyxl import load_workbook
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).parent
 EXCEL_FILE = PROJECT_ROOT / "output.xlsx"  # The existing mega file with parts data
@@ -17,9 +22,9 @@ def load_models_from_csv():
                 model = row.get('Model', 'N/A')
                 if serial:
                     models[serial] = model
-        print(f"✓ Loaded {len(models)} models from {MODELS_CSV}.")
+        logger.info(f"Loaded {len(models)} models from {MODELS_CSV}.")
     except Exception as e:
-        print(f"✗ Error loading models from CSV: {e}")
+        logger.error(f"Error loading models from CSV: {e}")
         return {}
     return models
 
@@ -39,6 +44,7 @@ def update_excel_with_models(models):
             sheet.insert_rows(1)
             for col, value in enumerate(header_row_values, 1):
                 sheet.cell(row=1, column=col, value=value)
+            logger.info("Added 'Model' column to header.")
         
         # Determine column indices (1-based)
         serial_col_idx = sheet.max_column - 1  # Serial is second last
@@ -46,7 +52,10 @@ def update_excel_with_models(models):
         
         # Update rows with model based on serial using iter_rows for speed
         updated_count = 0
+        total_rows = sheet.max_row - 1  # Excluding header
+        processed = 0
         for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row):
+            processed += 1
             serial_cell = row[serial_col_idx - 1]  # 0-based index
             serial = str(serial_cell.value or "").strip().upper()
             model = models.get(serial, "N/A")
@@ -54,17 +63,22 @@ def update_excel_with_models(models):
             if model_cell.value != model:  # Only update if different
                 model_cell.value = model
                 updated_count += 1
-            print(row)
+            
+            # Log progress every 1000 rows
+            if processed % 1000 == 0:
+                logger.info(f"Processed {processed}/{total_rows} rows, updated {updated_count} so far.")
         
         wb.save(EXCEL_FILE)
-        print(f"✓ Excel updated with models in output.xlsx (updated {updated_count} rows)")
+        logger.info(f"Excel updated with models in output.xlsx (total updated: {updated_count} rows)")
     except Exception as e:
-        print(f"✗ Error updating Excel: {e}")
+        logger.error(f"Error updating Excel: {e}")
 
 def main():
     models = load_models_from_csv()
     if models:
         update_excel_with_models(models)
+    else:
+        logger.warning("No models loaded; skipping Excel update.")
 
 if __name__ == "__main__":
     main()
